@@ -4,6 +4,7 @@ This is a small sample PHP application, containing code samples for integrating 
 
 Please see the [Paymentshield REST API Documentation][docs] for help.
 
+![Screenshot of the sample application](screenshot.png)
 
 ## Architecture
 
