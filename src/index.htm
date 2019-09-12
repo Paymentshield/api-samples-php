@@ -1,0 +1,128 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title></title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="css/tachyons.css">
+<style>
+
+</style>
+</head>
+<body class="sans-serif pa2">
+<main>
+	<h1>Paymentshield REST API Test interface</h1>
+	
+	<div id="app">
+	
+		<aside class="fr-ns db pa2 ma2 ba bw1 b--black-40 bg-black-10">
+			<h2>Saved responses</h2>
+			
+			<ul v-if="state && state.length">
+				<li v-for="member in state">{{member.Name}} = {{member.Value}}</li>
+			</ul>
+			
+			<p v-if="!state || state.length === 0"><i>Nothing here yet - make a request</i></p>
+		</aside>
+		
+		<section class="ba bw1 b--black-20 pa2 mv2 w-50-ns">
+			<h2 class="mt1">POST <code>/Security/Login</code></h2>
+			<p>This button will call the PHP script 'login.php'. It will POST to the /Security/Login method of the REST API.</p>
+			<button
+				class="pa1 ph2 ba bw1 b--black-20 bg-black-10 b pointer shadow-hover"
+				v-on:click="login()">Send Login Message</button>
+			<p class="white bg-blue pa1 ph2"><code>{{loginResponse}}</code></p>
+		</section>
+		
+		<section class="ba bw1 b--black-20 pa2 mv2 w-50-ns">
+			<h2 class="mt1">POST <code>/Quote</code></h2>
+			<p>This button will call the PHP script 'post_quote.php', sending along the UserId and Token from 'Saved Responses'. You need to do 'Send Login Message' first. The PHP backend will POST to the /Quote method of the REST API.</p>
+			<div v-if="canQuote">
+				<button
+					class="pa1 ph2 ba bw1 b--black-20 bg-black-10 b pointer shadow-hover"
+					v-on:click="postQuote()">Create Quote</button>
+				<p class="white bg-blue pa1 ph2"><code>{{postQuoteResponse}}</code></p>
+			</div>
+			<div v-if="!canQuote"><p><i>You need to login first, to get a UserId and Token</i></p></div>
+		</section>
+		
+	</div>
+</main>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/vue.js"></script>
+
+<script>
+var app = new Vue({
+  el: '#app',
+  data: {
+	state : [],
+    loginResponse : 'Click "Send Login Message"',
+	postQuoteResponse : 'Click "Create Quote"',
+	persistentKeys : ['UserId', 'Token', 'QuoteRequestId', 'QuoteId']
+  },
+  computed : {
+	canQuote : function()
+	{
+		return (this.state && this.state.length > 0);
+	}
+  },
+  methods: {
+    login : function()
+	{
+		self = this;
+		this.loginResponse = 'Loading...';
+		$.get('login.php', function(data)
+		{
+			console.log(data);
+			self.loginResponse = data;
+			self.parseData(data);
+		});
+	},
+    postQuote : function()
+	{
+		self = this;
+		this.loginResponse = 'Loading...';
+		$.get('post_quote.php', function(data)
+		{
+			console.log(data);
+			self.postQuoteResponse = data;
+			self.parseData(data);
+		});
+	},
+	parseData : function(data)
+	{
+		if (!this.state){this.state = [];}
+		
+		var dataObject = JSON.parse(data);
+		for(var key in dataObject)
+		{
+			if (this.persistentKeys.indexOf(key) !== -1)
+			{
+				this.state.push({ Name : key, Value : dataObject[key] });
+			}
+		}
+	},
+	addRow : function()
+    {
+      this.ingredients.push(ingredientFactory());
+    },
+    deleteRow : function(key)
+    {
+      this.ingredients.splice(key,1);
+    },
+    total : function()
+    {
+        var total = this.ingredients.map(i => (1*i.total)).reduce((t,i) => (1*t)+i);
+        return total.toFixed(2);
+    },
+    usePcs : function()
+    {
+      var match = this.ingredients.filter(i => i.name === this.selectedIngredient)[0];
+      match.meals = this.mealsPerPack;
+    }
+  }
+})
+</script>
+</body>
+</html>
