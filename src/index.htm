@@ -13,6 +13,8 @@
 <main>
 	<h1>Paymentshield REST API Test interface</h1>
 	
+	<p>Please consult the developer docs at <a href="https://developers.paymentshield.co.uk">https://developers.paymentshield.co.uk</a> for help and further reference.</p>
+	
 	<div id="app">
 	
 		<aside class="fr-ns db pa2 ma2 ba bw1 b--black-40 bg-black-10">
@@ -31,7 +33,7 @@
 			<button
 				class="pa1 ph2 ba bw1 b--black-20 bg-black-10 b pointer shadow-hover"
 				v-on:click="login()">Send Login Message</button>
-			<p class="white bg-blue pa1 ph2"><code>{{loginResponse}}</code></p>
+			<pre class="white bg-blue pa1 ph2">{{loginResponse}}</pre>
 		</section>
 		
 		<section class="ba bw1 b--black-20 pa2 mv2 w-50-ns">
@@ -41,7 +43,7 @@
 				<button
 					class="pa1 ph2 ba bw1 b--black-20 bg-black-10 b pointer shadow-hover"
 					v-on:click="postQuote()">Create Quote</button>
-				<p class="white bg-blue pa1 ph2"><code>{{postQuoteResponse}}</code></p>
+				<pre class="white bg-blue pa1 ph2">{{postQuoteResponse}}</pre>
 			</div>
 			<div v-if="!canQuote"><p><i>You need to login first, to get a UserId and Token</i></p></div>
 		</section>
@@ -75,18 +77,21 @@ var app = new Vue({
 		$.get('login.php', function(data)
 		{
 			console.log(data);
-			self.loginResponse = data;
+			self.loginResponse = self.jsonFormat(data);
 			self.parseData(data);
 		});
 	},
     postQuote : function()
 	{
 		self = this;
-		this.loginResponse = 'Loading...';
-		$.get('post_quote.php', function(data)
+		this.postQuoteResponse = 'Loading...';
+		var userId = self.state.filter(s => s.Name == 'UserId')[0].Value;
+		var token = self.state.filter(s => s.Name == 'Token')[0].Value;
+		var request = 'post_quote.php?userId=' + userId + '&token=' + token;
+		$.get(request, function(data)
 		{
 			console.log(data);
-			self.postQuoteResponse = data;
+			self.postQuoteResponse = self.jsonFormat(data);
 			self.parseData(data);
 		});
 	},
@@ -103,24 +108,12 @@ var app = new Vue({
 			}
 		}
 	},
-	addRow : function()
-    {
-      this.ingredients.push(ingredientFactory());
-    },
-    deleteRow : function(key)
-    {
-      this.ingredients.splice(key,1);
-    },
-    total : function()
-    {
-        var total = this.ingredients.map(i => (1*i.total)).reduce((t,i) => (1*t)+i);
-        return total.toFixed(2);
-    },
-    usePcs : function()
-    {
-      var match = this.ingredients.filter(i => i.name === this.selectedIngredient)[0];
-      match.meals = this.mealsPerPack;
-    }
+	jsonFormat : function(json)
+	{
+		json = JSON.parse(json);
+		json = JSON.stringify(json, null, 2);
+		return json;
+	}
   }
 })
 </script>
