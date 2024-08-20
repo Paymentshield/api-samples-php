@@ -80,10 +80,9 @@ var app = new Vue({
     },
     postQuote : function()
     {
-      self = this;
       this.postQuoteResponse = 'Loading...';
-      var userId = self.state.filter(s => s.Name == 'UserId')[0].Value;
-      var token = self.state.filter(s => s.Name == 'Token')[0].Value;
+      var userId = this.state.filter(s => s.Name == 'UserId')[0].Value;
+      var token = this.state.filter(s => s.Name == 'Token')[0].Value;
       var request = 'post_quote.php?userId=' + userId + '&token=' + token;
       const response = await fetch(request);
       const data = await response.json()
