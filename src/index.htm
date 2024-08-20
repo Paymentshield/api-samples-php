@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<title></title>
+<title>PSL REST API Test</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/tachyons.css">
@@ -11,109 +11,105 @@
 </head>
 <body class="sans-serif pa2">
 <main>
-	<h1>Paymentshield REST API Test interface</h1>
-	
-	<p>Please consult the developer docs at <a href="https://developers.paymentshield.co.uk">https://developers.paymentshield.co.uk</a> for help and further reference.</p>
-	
-	<div id="app">
-	
-		<aside class="fr-ns db pa2 ma2 ba bw1 b--black-40 bg-black-10">
-			<h2>Saved responses</h2>
-			
-			<ul v-if="state && state.length">
-				<li v-for="member in state">{{member.Name}} = {{member.Value}}</li>
-			</ul>
-			
-			<p v-if="!state || state.length === 0"><i>Nothing here yet - make a request</i></p>
-		</aside>
-		
-		<section class="ba bw1 b--black-20 pa2 mv2 w-50-ns">
-			<h2 class="mt1">POST <code>/Security/Login</code></h2>
-			<p>This button will call the PHP script 'login.php'. It will POST to the /Security/Login method of the REST API.</p>
-			<button
-				class="pa1 ph2 ba bw1 b--black-20 bg-black-10 b pointer shadow-hover"
-				v-on:click="login()">Send Login Message</button>
-			<pre class="white bg-blue pa1 ph2">{{loginResponse}}</pre>
-		</section>
-		
-		<section class="ba bw1 b--black-20 pa2 mv2 w-50-ns">
-			<h2 class="mt1">POST <code>/Quote</code></h2>
-			<p>This button will call the PHP script 'post_quote.php', sending along the UserId and Token from 'Saved Responses'. You need to do 'Send Login Message' first. The PHP backend will POST to the /Quote method of the REST API.</p>
-			<div v-if="canQuote">
-				<button
-					class="pa1 ph2 ba bw1 b--black-20 bg-black-10 b pointer shadow-hover"
-					v-on:click="postQuote()">Create Quote</button>
-				<pre class="white bg-blue pa1 ph2">{{postQuoteResponse}}</pre>
-			</div>
-			<div v-if="!canQuote"><p><i>You need to login first, to get a UserId and Token</i></p></div>
-		</section>
-		
-	</div>
+  <h1>Paymentshield REST API Test interface</h1>
+  
+  <p>Please consult the developer docs at <a href="https://developers.paymentshield.co.uk">https://developers.paymentshield.co.uk</a> for help and further reference.</p>
+  
+  <div id="app">
+  
+    <aside class="fr-ns db pa2 ma2 ba bw1 b--black-40 bg-black-10">
+      <h2>Saved responses</h2>
+      
+      <ul v-if="state && state.length">
+        <li v-for="member in state">{{member.Name}} = {{member.Value}}</li>
+      </ul>
+      
+      <p v-if="!state || state.length === 0"><i>Nothing here yet - make a request</i></p>
+    </aside>
+    
+    <section class="ba bw1 b--black-20 pa2 mv2 w-50-ns">
+      <h2 class="mt1">POST <code>/Security/Login</code></h2>
+      <p>This button will call the PHP script 'login.php'. It will POST to the /Security/Login method of the REST API.</p>
+      <button
+        class="pa1 ph2 ba bw1 b--black-20 bg-black-10 b pointer shadow-hover"
+        v-on:click="login()">Send Login Message</button>
+      <pre class="white bg-blue pa1 ph2">{{loginResponse}}</pre>
+    </section>
+    
+    <section class="ba bw1 b--black-20 pa2 mv2 w-50-ns">
+      <h2 class="mt1">POST <code>/Quote</code></h2>
+      <p>This button will call the PHP script 'post_quote.php', sending along the UserId and Token from 'Saved Responses'. You need to do 'Send Login Message' first. The PHP backend will POST to the /Quote method of the REST API.</p>
+      <div v-if="canQuote">
+        <button
+          class="pa1 ph2 ba bw1 b--black-20 bg-black-10 b pointer shadow-hover"
+          v-on:click="postQuote()">Create Quote</button>
+        <pre class="white bg-blue pa1 ph2">{{postQuoteResponse}}</pre>
+      </div>
+      <div v-if="!canQuote"><p><i>You need to login first, to get a UserId and Token</i></p></div>
+    </section>
+    
+  </div>
 </main>
 
-<script src="js/jquery.min.js"></script>
 <script src="js/vue.js"></script>
 
 <script>
 var app = new Vue({
   el: '#app',
   data: {
-	state : [],
+    state : [],
     loginResponse : 'Click "Send Login Message"',
-	postQuoteResponse : 'Click "Create Quote"',
-	persistentKeys : ['UserId', 'Token', 'QuoteRequestId', 'QuoteId']
+    postQuoteResponse : 'Click "Create Quote"',
+    persistentKeys : ['UserId', 'Token', 'QuoteRequestId', 'QuoteId']
   },
   computed : {
-	canQuote : function()
-	{
-		return (this.state && this.state.length > 0);
-	}
+    canQuote : function()
+    {
+      return (this.state && this.state.length > 0);
+    }
   },
   methods: {
     login : function()
-	{
-		self = this;
-		this.loginResponse = 'Loading...';
-		$.get('login.php', function(data)
-		{
-			console.log(data);
-			self.loginResponse = self.jsonFormat(data);
-			self.parseData(data);
-		});
-	},
+    {
+      this.loginResponse = 'Loading...';
+      const response = await fetch('login.php');
+      const data = await response.json()
+      console.log(data);
+      this.loginResponse = this.jsonFormat(data);
+      this.parseData(data);
+    },
     postQuote : function()
-	{
-		self = this;
-		this.postQuoteResponse = 'Loading...';
-		var userId = self.state.filter(s => s.Name == 'UserId')[0].Value;
-		var token = self.state.filter(s => s.Name == 'Token')[0].Value;
-		var request = 'post_quote.php?userId=' + userId + '&token=' + token;
-		$.get(request, function(data)
-		{
-			console.log(data);
-			self.postQuoteResponse = self.jsonFormat(data);
-			self.parseData(data);
-		});
-	},
-	parseData : function(data)
-	{
-		if (!this.state){this.state = [];}
-		
-		var dataObject = JSON.parse(data);
-		for(var key in dataObject)
-		{
-			if (this.persistentKeys.indexOf(key) !== -1)
-			{
-				this.state.push({ Name : key, Value : dataObject[key] });
-			}
-		}
-	},
-	jsonFormat : function(json)
-	{
-		json = JSON.parse(json);
-		json = JSON.stringify(json, null, 2);
-		return json;
-	}
+    {
+      self = this;
+      this.postQuoteResponse = 'Loading...';
+      var userId = self.state.filter(s => s.Name == 'UserId')[0].Value;
+      var token = self.state.filter(s => s.Name == 'Token')[0].Value;
+      var request = 'post_quote.php?userId=' + userId + '&token=' + token;
+      const response = await fetch(request);
+      const data = await response.json()
+      console.log(data);
+      this.postQuoteResponse = this.jsonFormat(data);
+      this.parseData(data);
+    },
+    parseData : function(data)
+    {
+      if (!this.state){this.state = [];}
+      
+      var dataObject = JSON.parse(data);
+      for(var key in dataObject)
+      {
+        if (this.persistentKeys.indexOf(key) !== -1)
+        {
+          this.state.push({ Name : key, Value : dataObject[key] });
+        }
+      }
+    },
+    jsonFormat : function(json)
+    {
+      json = JSON.parse(json);
+      json = JSON.stringify(json, null, 2);
+      return json;
+    }
   }
 })
 </script>
